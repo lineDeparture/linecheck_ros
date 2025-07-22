@@ -1,0 +1,3 @@
+[console_scripts]
+LC = line_checker.main:main
+
