@@ -1,10 +1,6 @@
 import os
-os.environ["QT_QPA_PLATFORM"] = "xcb"
-os.environ["QT_PLUGIN_PATH"] = "/usr/lib/x86_64-linux-gnu/qt5/plugins"
-os.environ["LD_LIBRARY_PATH"] = "/usr/lib/x86_64-linux-gnu:" + os.environ.get("LD_LIBRARY_PATH", "")
 
 import time
-import cv2
 import numpy as np
 from ultralytics import YOLO
 import sys
@@ -18,6 +14,7 @@ from line_checker.publisher.MSG_publisher import MSG_Line_Check
 from line_checker.publisher.video_publisher import VideoPublisher
 import pkg_resources
 import rclpy
+import cv2
 
 # --- 설정값 ---
 CONF_THRESHOLD = 0.3
