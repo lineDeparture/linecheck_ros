@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 빌드 결과물
+build/
+dist/
+*.egg-info/
+*.tar.gz
+*.whl
+
+# ROS 빌드/설정
+devel/
+install/
+log/
+log_dir/
+
+# 데이터/모델/동영상 등
+*.mp4
+*.avi
+*.mkv
+*.pt
+*.h5
+*.onnx
+
+# 기타
+.DS_Store
+*.swp
