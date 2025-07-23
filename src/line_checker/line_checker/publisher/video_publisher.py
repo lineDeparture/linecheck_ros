@@ -24,26 +24,9 @@ class VideoPublisher(Node):
         self.publisher = self.create_publisher(Image, 'video_topic', QOS_RKL10V)
         self.bridge = CvBridge()
 
-    def publish_video(self, video_path):
-        cap = cv2.VideoCapture(video_path)
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
+    def publish_video(self, frame):
             # OpenCV BGR 이미지를 ROS2 Image 메시지로 변환
-            msg = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
-            self.publisher.publish(msg)
-            # 프레임 속도 조절 (예: 30fps)
-            rclpy.spin_once(self, timeout_sec=1/30)
-        cap.release()
-
-def main():
-    rclpy.init()
-    node = VideoPublisher()
-    video_path = 'your_video.mp4'  # 또는 0 (웹캠)
-    node.publish_video(video_path)
-    node.destroy_node()
-    rclpy.shutdown()
-
-if __name__ == '__main__':
-    main()
+        msg = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
+        self.publisher.publish(msg)
+        # 프레임 속도 조절 (예: 30fps)
+        #rclpy.spin_once(self, timeout_sec=1/30)

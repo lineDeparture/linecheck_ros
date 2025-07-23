@@ -14,7 +14,8 @@ from PyQt5.QtGui import QImage, QPixmap
 from typing import Optional
 from pathlib import Path
 from line_check_msg.msg import LineCheckMSG
-from line_checker.MSG_publisher import MSG_Line_Check
+from line_checker.publisher.MSG_publisher import MSG_Line_Check
+from line_checker.publisher.video_publisher import VideoPublisher
 import pkg_resources
 import rclpy
 
@@ -85,7 +86,7 @@ class VideoThread(QThread):
     change_pixmap_signal = pyqtSignal(np.ndarray)
     finished_signal = pyqtSignal()
 
-    def __init__(self, module_name: str, video_path: str, line_check_msg: LineCheckMSG):
+    def __init__(self, module_name: str, video_path: str, line_check_msg: LineCheckMSG, video_publisher: VideoPublisher):
         super().__init__()
         self.line_check_msg = line_check_msg
         """
@@ -107,6 +108,8 @@ class VideoThread(QThread):
         self.warning_icon = cv2.imread(WARNING_ICON_PATH, cv2.IMREAD_UNCHANGED)
         if self.warning_icon is not None:
             self.warning_icon = cv2.resize(self.warning_icon, (60, 60), interpolation=cv2.INTER_AREA)
+
+        self.video_publisher = VideoPublisher()
 
     # --- 객체 검출 후 거리 계산 및 경고 표시 ---
     def process_detections(self, results, lane_polygon, M, frame_shape, annotated_frame):
@@ -238,6 +241,7 @@ class VideoThread(QThread):
             cv2.putText(annotated_frame, f"FPS: {fps:.1f}", (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
             out.write(annotated_frame)
+            self.video_publisher.publish_video(annotated_frame)
             self.change_pixmap_signal.emit(annotated_frame)
 
         # 비디오 종료 후 리소스 정리    
@@ -260,11 +264,12 @@ class VideoThread(QThread):
 
 # --- 메인 윈도우 클래스 ---
 class MainWindow(QMainWindow):
-    def __init__(self, line_check_msg: LineCheckMSG):
+    def __init__(self, line_check_msg: LineCheckMSG, video_publisher: VideoPublisher):
         super().__init__()
         self.line_check_msg = line_check_msg
         self.thread: Optional[VideoThread] = None
         self.init_ui()
+        self.video_publisher = VideoPublisher
 
     def get_mp4_files(self, folder_path):
         import os 
@@ -325,7 +330,7 @@ class MainWindow(QMainWindow):
             module_name = self.module_combo.currentText()
             video_file = self.video_combo.currentText()
             video_path = get_resource_path(f"LC_resource/test_video/{video_file}")
-            self.thread = VideoThread(module_name, video_path, self.line_check_msg)
+            self.thread = VideoThread(module_name, video_path, self.line_check_msg, self.video_publisher)
             self.thread.change_pixmap_signal.connect(self.update_image)
             self.thread.finished_signal.connect(self.video_finished)
             self.thread.start()
@@ -381,8 +386,9 @@ def main():
     rclpy.init()
 
     line_check_msg = MSG_Line_Check()
+    video_publisher = VideoPublisher()
     app = QApplication(sys.argv)
-    window = MainWindow(line_check_msg)
+    window = MainWindow(line_check_msg, video_publisher)
     window.show()
     sys.exit(app.exec_())
     rclpy.shutdown()
