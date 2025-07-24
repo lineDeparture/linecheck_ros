@@ -106,7 +106,7 @@ class VideoThread(QThread):
         if self.warning_icon is not None:
             self.warning_icon = cv2.resize(self.warning_icon, (60, 60), interpolation=cv2.INTER_AREA)
 
-        self.video_publisher = VideoPublisher()
+        self.video_publisher = video_publisher  # 주입받은 인스턴스 사용
 
     # --- 객체 검출 후 거리 계산 및 경고 표시 ---
     def process_detections(self, results, lane_polygon, M, frame_shape, annotated_frame):
@@ -264,9 +264,9 @@ class MainWindow(QMainWindow):
     def __init__(self, line_check_msg: LineCheckMSG, video_publisher: VideoPublisher):
         super().__init__()
         self.line_check_msg = line_check_msg
+        self.video_publisher = video_publisher  # 인스턴스 할당
         self.thread: Optional[VideoThread] = None
         self.init_ui()
-        self.video_publisher = VideoPublisher
 
     def get_mp4_files(self, folder_path):
         import os 
